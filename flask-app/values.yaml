@@ -1,0 +1,19 @@
+replicaCount: 2
+image:
+ repository: flask-app
+ tag: v2
+ pullPolicy: Never
+
+service:
+ type: ClusterIP
+ port: 8081
+
+postgres:
+ image:
+  repository: postgres
+  tag: "16"
+ database: appdb
+ username: appuser
+
+secrets:
+ dbPassword: ""
