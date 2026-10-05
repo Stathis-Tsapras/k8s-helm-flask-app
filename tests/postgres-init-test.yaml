@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: postgres-init-test
+spec:
+ restartPolicy: Never
+ containers:
+ - name: postgres
+   image: postgres:16
+   env:
+   - name: POSTGRES_DB
+     value: appdb
+   - name: POSTGRES_USER
+     value: appuser
+   - name: POSTGRES_PASSWORD
+     valueFrom:
+      secretKeyRef:
+       name: app-secret
+       key: DB_PASSWORD
+   volumeMounts:
+   - name: test-data
+     mountPath: /var/lib/postgresql/data
+   - name: postgres-init
+     mountPath: /docker-entrypoint-initdb.d
+     readOnly: true
+ volumes:
+ - name: test-data
+   emptyDir: {}
+ - name: postgres-init
+   configMap:
+    name: postgres-init

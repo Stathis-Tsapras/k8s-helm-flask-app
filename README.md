@@ -4,7 +4,7 @@ A learning project deploying an existing Flask application with PostgreSQL on a 
 
 ## Current scope
 
-Helm release `flask-app` in namespace `default` manages the Flask Deployment, Flask Service, ConfigMap, application Secret, PostgreSQL Deployment, and PostgreSQL Service. The PersistentVolumeClaim is managed separately. This repository contains its manifest, but does not yet contain the Flask source/Dockerfile.
+Helm release `flask-app` in namespace `default` manages the Flask Deployment, Flask Service, ConfigMap, application Secret, PostgreSQL Deployment, PostgreSQL Service and PostgreSQL Initialisation ConfigMap. The PersistentVolumeClaim is managed separately. This repository contains its manifest, but does not yet contain the Flask source/Dockerfile.
 
 This is a local lab, not a production deployment. The instructions below assume the existing `devops-lab` kind cluster and the Flask image from the earlier Docker project.
 
@@ -94,30 +94,20 @@ Before installing into another prepared kind cluster:
    helm install flask-app ./flask-app -f ~/devops-lab-private.yaml --wait --timeout 2m
    ```
 
-5. Initialise the application table or restore a backup. The PostgreSQL image initialises the database and user on an empty data directory; the chart does not automatically create the `users` table.
+5. On an empty PostgreSQL data directory, the mounted init.sql auuutomcatically creates the users table and inserts Kubernetes User.
 
-Existing resources created outside Helm need explicit ownership migration before installation/upgrade. This migration was completed for the lab's PostgreSQL Deployment. Do not delete the working database to resolve ownership errors.
+   Existing database are left unchanged.
 
 ## Initialise a fresh application database
 
-For an empty `appdb` only, open psql:
+The chart mounts postgres-init at /docker-entrypoint-initdb.d.
 
-```bash
-kubectl exec -it deployment/postgres -- psql -U appuser -d appdb
-```
+PostgreSQL runs its init.sql only when the data directory is empty.
 
-Then run:
+Updating the script does not apply schema changes to an  existing database; those require migrations.
 
-```sql
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL
-);
-INSERT INTO users (name) VALUES ('Kubernetes User');
-SELECT id, name FROM users;
-```
-
-Exit with `\q`. Do not repeat initialisation on a restored database.
+Verification command:
+kubectl exec deployment/postgres -- psql -U appuser -d appdb -c 'SELECT id,name FROM users;'
 
 ## Access the application
 
@@ -176,5 +166,5 @@ The query still returned `1 | Kubernetes User`. This verifies persistence across
 
 ## Remaining work
 
-- Add reproducible database initialisation or migrations.
+- Add schema migrations for existing databases.
 - Review probes, resource requests/limits, and database security before considering broader use.
