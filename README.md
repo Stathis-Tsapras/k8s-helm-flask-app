@@ -4,7 +4,7 @@ A learning project deploying an existing Flask application with PostgreSQL on a 
 
 ## Current scope
 
-Helm release `flask-app` in namespace `default` manages the Flask Deployment, Flask Service, ConfigMap, application Secret, and PostgreSQL Deployment. The PostgreSQL Service and PersistentVolumeClaim are managed separately. This repository contains the PVC manifest, but does not yet contain the PostgreSQL Service manifest or the Flask source/Dockerfile.
+Helm release `flask-app` in namespace `default` manages the Flask Deployment, Flask Service, ConfigMap, application Secret, PostgreSQL Deployment, and PostgreSQL Service. The PersistentVolumeClaim is managed separately. This repository contains its manifest, but does not yet contain the Flask source/Dockerfile.
 
 This is a local lab, not a production deployment. The instructions below assume the existing `devops-lab` kind cluster and the Flask image from the earlier Docker project.
 
@@ -94,13 +94,7 @@ Before installing into another prepared kind cluster:
    helm install flask-app ./flask-app -f ~/devops-lab-private.yaml --wait --timeout 2m
    ```
 
-5. If the separately managed PostgreSQL Service does not already exist, create it after the Deployment exists:
-
-   ```bash
-   kubectl expose deployment postgres --name=postgres --port=5432 --target-port=5432
-   ```
-
-6. Initialise the application table or restore a backup. The PostgreSQL image initialises the database and user on an empty data directory; the chart does not automatically create the `users` table.
+5. Initialise the application table or restore a backup. The PostgreSQL image initialises the database and user on an empty data directory; the chart does not automatically create the `users` table.
 
 Existing resources created outside Helm need explicit ownership migration before installation/upgrade. This migration was completed for the lab's PostgreSQL Deployment. Do not delete the working database to resolve ownership errors.
 
@@ -182,7 +176,5 @@ The query still returned `1 | Kubernetes User`. This verifies persistence across
 
 ## Remaining work
 
-- Record the separately managed PostgreSQL Service as a manifest.
-- Make Flask and PostgreSQL use shared database/user configuration values.
 - Add reproducible database initialisation or migrations.
 - Review probes, resource requests/limits, and database security before considering broader use.
