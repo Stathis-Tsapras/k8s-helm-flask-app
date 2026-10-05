@@ -109,6 +109,36 @@ Updating the script does not apply schema changes to an  existing database; thos
 Verification command:
 kubectl exec deployment/postgres -- psql -U appuser -d appdb -c 'SELECT id,name FROM users;'
 
+## Fresh database test
+
+The test pod uses temporary `emptyDir` storage and the chart's
+initialisation ConfigMap. It does not use the main database PVC
+or receive traffic from the PostgreSQL Service.
+
+Run after deploying the chart:
+
+```bash
+kubectl apply -f tests/postgres-init-test.yaml
+kubectl logs postgres-init-test
+```
+
+Once PostgreSQL is ready, verify:
+
+```bash
+kubectl exec postgres-init-test -- psql -U appuser -d appdb -c 'SELECT id, name FROM users;'
+```
+
+Expected result: `1 | Kubernetes User`.
+
+Clean up:
+
+```bash
+kubectl delete pod postgres-init-test
+```
+
+Deleting this test pod removes its temporary database. Each new
+test pod starts with empty storage.
+
 ## Access the application
 
 ```bash
