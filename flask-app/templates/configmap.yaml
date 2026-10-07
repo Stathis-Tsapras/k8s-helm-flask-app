@@ -4,5 +4,5 @@ metadata:
  name: flask-config
 data:
  POSTGRES_HOST: postgres
- POSTGRES_DB: {{ .Values.postgres.databas | quote }}
+ POSTGRES_DB: {{ .Values.postgres.database | quote }}
  POSTGRES_USER: {{ .Values.postgres.username | quote }}

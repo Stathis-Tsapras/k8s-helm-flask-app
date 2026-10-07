@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
  repository: flask-app
- tag: v2
+ tag: v3
  pullPolicy: Never
 
 service:

@@ -41,3 +41,20 @@ spec:
               secretKeyRef:
                name: app-secret
                key: DB_PASSWORD  
+
+          readinessProbe:
+           httpGet:
+            path: /ready
+            port: 5000
+           initialDelaySeconds: 5
+           periodSeconds: 5
+           timeoutSeconds: 3
+           failureThreshold: 3
+          livenessProbe:
+           httpGet:
+            path: /health
+            port: 5000
+           initialDelaySeconds: 10
+           periodSeconds: 10
+           timeoutSeconds: 3
+           failureThreshold: 3
