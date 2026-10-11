@@ -94,9 +94,9 @@ Before installing into another prepared kind cluster:
    helm install flask-app ./flask-app -f ~/devops-lab-private.yaml --wait --timeout 2m
    ```
 
-5. On an empty PostgreSQL data directory, the mounted init.sql auuutomcatically creates the users table and inserts Kubernetes User.
+5. On an empty PostgreSQL data directory, the mounted init.sql automcatically creates the users table and inserts Kubernetes User.
 
-   Existing database are left unchanged.
+   Existing databases are left unchanged.
 
 ## Initialise a fresh application database
 
@@ -204,7 +204,7 @@ kubectl exec deployment/postgres -- pg_dump -U appuser -d appdb > ~/appdb-backup
 
 Check the command succeeded and inspect the backup before changing storage. `>` writes output to a local file; do not overwrite a valid backup with a dump of an empty database.
 
-Restore into a fresh database:
+Restore into an empty database without the initialisation-created `users` table. The chart's normal first-start initialisation already creates that table, so restoring the full dump into an automatically initialised database can cause conflicts.
 
 ```bash
 kubectl exec -i deployment/postgres -- psql -U appuser -d appdb -v ON_ERROR_STOP=1 < ~/appdb-backup.sql
@@ -238,8 +238,13 @@ The query still returned `1 | Kubernetes User`. This verifies persistence across
 - YAML parse errors: keep `repository` and `tag` aligned, with a space after each colon.
 - `valueFrom ... may not be specified when value is not empty`: explicitly remove the retained plain `value` when switching an existing environment entry to `secretKeyRef`.
 - Exported Deployment conflicts: remove generated metadata such as `resourceVersion` and the generated `status` section from maintained manifests.
+-  Readiness returns 503: check database connectivity and configuration. A typo in `.Values.postgres.database` rendered an empty `POSTGRES_DB`. Correcting the template, upgrading Helm, and restarting Flask resolved it. ConfigMap values supplied as environment variables require replacement Pods to take effect.
+
+## Remaining work
 
 ## Remaining work
 
 - Add schema migrations for existing databases.
-- Review probes, resource requests/limits, and database security before considering broader use.
+- Review PostgreSQL probes and resource settings.
+- Measure resource usage under load and adjust the Flask settings.
+- Review database security before considering broader use.
