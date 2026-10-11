@@ -149,6 +149,51 @@ Keep the terminal running, then open `http://localhost:9090` on the machine runn
 
 The lab page displayed `1 - Kubernetes User`. Local port 9090 forwards to Service port 8081; the Service targets Flask port 5000. If the local port is occupied, change only the left-hand port number and use that port in the browser.
 
+## Health checks and resource settings
+
+The Flask application provides two health endpoints:
+
+- `/health` returns `OK` when Flask responds. The liveness probe checks this endpoint.
+- `/ready` returns `Ready` when Flask can connect to PostgreSQL and execute `SELECT 1`. It returns HTTP 503 if the database check fails. The readiness probe checks this endpoint.
+
+Both probes use container port 5000. Readiness runs every 5 seconds; liveness runs every 10 seconds. Both have a 3-second timeout and a failure threshold of 3.
+
+Each Flask container has these resource settings:
+
+| Resource | Request | Limit |
+| --- | --- | --- |
+| CPU | 100m | 500m |
+| Memory | 128Mi | 256Mi |
+
+These are initial lab settings, not values established through load testing.
+
+## Verified database outage test
+
+Record the Flask Pod names and restart counts:
+
+```bash
+kubectl get pods -n default
+```
+
+Temporarily stop PostgreSQL:
+
+```bash
+kubectl scale deployment postgres --replicas=0 -n default
+kubectl get pods -n default -w
+```
+
+Both Flask Pods became `0/1 Ready` while remaining `Running`. During a roughly 60-second outage, their restart counts stayed unchanged.
+
+Press Ctrl+C to stop watching, then restore PostgreSQL:
+
+```bash
+kubectl scale deployment postgres --replicas=1 -n default
+kubectl rollout status deployment/postgres -n default --timeout=2m
+kubectl get pods -n default
+```
+
+Both Flask Pods returned to `1/1 Ready`. This verified that readiness detected the database outage while liveness kept Flask running. The PostgreSQL PVC remained in place throughout.
+
 ## Backup and restore
 
 Save a SQL backup outside the repository:
