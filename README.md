@@ -255,6 +255,16 @@ PostgreSQL requests 100m CPU and 256Mi memory, with limits of 1 CPU and 512Mi me
 
 The upgrade succeeded, PostgreSQL accepted connections, and the application and Flask health endpoints continued to work.  
 
+## Resource observation
+
+Metrics Server v0.9.0 was installed separately in kube-system. This local kind lab required --kubelet-insecure-tls because the kubelet certificate lacked an IP SAN. This disables kubelet certificate verification and is a testing workaround.
+
+Initial readings were 2m CPU and 26–28Mi memory per Flask Pod, and 10m CPU and 57Mi memory for PostgreSQL.
+
+A sequential curl loop sent 300 requests through port-forward without reporting errors. Flask's highest observed CPU reading was 19m. Memory during the test was not recorded.
+
+This was a small traffic exercise, not a capacity benchmark. Port-forward targeted one Flask Pod. Resource requests and limits were left unchanged.
+
 ## Remaining work
 
 - Add schema migrations for existing databases.
