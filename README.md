@@ -240,11 +240,24 @@ The query still returned `1 | Kubernetes User`. This verifies persistence across
 - Exported Deployment conflicts: remove generated metadata such as `resourceVersion` and the generated `status` section from maintained manifests.
 -  Readiness returns 503: check database connectivity and configuration. A typo in `.Values.postgres.database` rendered an empty `POSTGRES_DB`. Correcting the template, upgrading Helm, and restarting Flask resolved it. ConfigMap values supplied as environment variables require replacement Pods to take effect.
 
-## Remaining work
+## PostgreSQL probes and resources
+
+All three PostgreSQL probes run `pg_isready` against localhost port 5432 using the container's database and user environment variables.
+
+- Startup checks every 5 seconds, with a failure threshold of 60.
+- Readiness checks every 5 seconds, with a failure threshold of 3.
+- Liveness checks every 10 seconds, with a failure threshold of 6.
+- Each probe has a 3-second timeout; `pg_isready` has a 2-second timeout.
+
+Startup must succeed before readiness and liveness begin. Readiness failure removes the Pod from normal Service traffic; repeated liveness failure restarts the container.
+
+PostgreSQL requests 100m CPU and 256Mi memory, with limits of 1 CPU and 512Mi memory. These are initial lab settings. Liveness behaviour during recovery and resource sizing need further testing.
+
+The upgrade succeeded, PostgreSQL accepted connections, and the application and Flask health endpoints continued to work.  
 
 ## Remaining work
 
 - Add schema migrations for existing databases.
-- Review PostgreSQL probes and resource settings.
+- Test PostgreSQL probe behaviour during failures and recovery.
 - Measure resource usage under load and adjust the Flask settings.
 - Review database security before considering broader use.
