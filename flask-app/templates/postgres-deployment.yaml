@@ -40,7 +40,40 @@ spec:
          - name: postgres-init
            mountPath: /docker-entrypoint-initdb.d
            readOnly: true
-        resources: {}
+        resources:
+         requests:
+          cpu: 100m
+          memory: 256Mi
+         limits:
+          cpu: "1"
+          memory: 512Mi
+        readinessProbe:
+         exec:
+          command:
+           - sh
+           - -c
+           - 'pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRE_USER" -d "$POSTGRES_DB" -t 2'
+         periodSeconds: 5
+         timeoutSeconds: 3
+         failureThreshold: 3
+        startupProbe:
+         exec:
+          command:
+           - sh
+           - -c
+           - 'pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t 2'
+         periodSeconds: 5
+         timeoutSeconds: 3
+         failureThreshold: 60
+        livenessProbe:
+         exec:
+          command:
+           - sh
+           - -c
+           - 'pg_isready -h  127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t 2'
+         periodSeconds: 10
+         timeoutSeconds: 3
+         failureThreshold: 6 
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
