@@ -265,6 +265,25 @@ A sequential curl loop sent 300 requests through port-forward without reporting 
 
 This was a small traffic exercise, not a capacity benchmark. Port-forward targeted one Flask Pod. Resource requests and limits were left unchanged.
 
+## Metrics Server setup for kind
+
+The configuration in `infrastructure/metrics-server/kustomization.yaml` references Metrics Server v0.9.0 and adds `--kubelet-insecure-tls` for this local kind lab.
+
+This flag bypasses kubelet certificate verification. It is a testing workaround for the node certificate's missing IP SAN.
+
+From the repository root:
+
+```bash
+kubectl apply --dry-run=server -k infrastructure/metrics-server
+kubectl apply -k infrastructure/metrics-server
+kubectl rollout status deployment/metrics-server -n kube-system --timeout=2m
+kubectl top pods -n default
+```
+
+`-k` builds the Kustomize configuration from the directory. Fetching the pinned upstream manifest requires network access.
+
+The rollout and metrics readings were verified. Reapplying the configuration left the Deployment unchanged. Metrics Server is managed separately from the Flask Helm release.
+
 ## Remaining work
 
 - Add schema migrations for existing databases.
