@@ -31,6 +31,11 @@ spec:
           value: {{ .Values.postgres.database | quote }}
         - name: POSTGRES_USER
           value: {{ .Values.postgres.username | quote }}
+        - name: FLASK_DB_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: app-secret
+            key: FLASK_DB_PASSWORD
         image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
         imagePullPolicy: IfNotPresent
         name: postgres

@@ -11,3 +11,16 @@ data:
 
   INSERT INTO users (name)
   VALUES ('Kubernetes User');
+
+
+ z-flask-user.sh: |
+  #!/bin/bash
+  set -e
+  : "${FLASK_DB_PASSWORD:?Missing Flask password}"
+  psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<'SQL'
+  \getenv flask_password FLASK_DB_PASSWORD
+  CREATE ROLE flaskuser LOGIN PASSWORD :'flask_password';
+  GRANT CONNECT ON DATABASE appdb TO flaskuser;
+  GRANT USAGE ON SCHEMA public TO flaskuser;
+  GRANT SELECT ON TABLE public.users TO flaskuser;
+  SQL

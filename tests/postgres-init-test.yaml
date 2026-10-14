@@ -17,6 +17,11 @@ spec:
       secretKeyRef:
        name: app-secret
        key: DB_PASSWORD
+   - name: FLASK_DB_PASSWORD
+     valueFrom:
+      secretKeyRef:
+       name: app-secret
+       key: FLASK_DB_PASSWORD
    volumeMounts:
    - name: test-data
      mountPath: /var/lib/postgresql/data
