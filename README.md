@@ -284,6 +284,19 @@ kubectl top pods -n default
 
 The rollout and metrics readings were verified. Reapplying the configuration left the Deployment unchanged. Metrics Server is managed separately from the Flask Helm release.
 
+## Database accounts
+
+- `appuser` is the PostgreSQL administrator.
+- Flask connects as `flaskuser`, which has SELECT access to `public.users`.
+- Secret key `DB_PASSWORD` supplies the administrator password.
+- Secret key `FLASK_DB_PASSWORD` supplies the Flask password.
+
+On empty storage, `init.sql` creates the table and test row. Then `z-flask-user.sh` creates `flaskuser` using the password supplied through the environment and grants its permissions.
+
+Existing databases do not rerun these scripts. Their roles must be configured separately.
+
+The isolated fresh-database test verified that `flaskuser` could read `Kubernetes User` and could not insert rows.
+
 ## Remaining work
 
 - Add schema migrations for existing databases.
