@@ -297,6 +297,15 @@ Existing databases do not rerun these scripts. Their roles must be configured se
 
 The isolated fresh-database test verified that `flaskuser` could read `Kubernetes User` and could not insert rows.
 
+
+## Automated checks
+
+GitHub Actions runs Helm lint and template rendering on pushes and pull requests. It can also be started manually.
+
+Workflow: `.github/workflows/helm-check.yaml`
+
+Checks use Helm v4.3.0 and dummy passwords. No private values file or cluster access is required. These checks do not deploy the application or test database connectivity.
+
 ## Remaining work
 
 - Add schema migrations for existing databases.
