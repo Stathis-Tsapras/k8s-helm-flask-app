@@ -1,0 +1,32 @@
+name: Helm checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+   runs-on: ubuntu-latest
+   steps:
+    - uses: actions/checkout@v6
+
+    - uses: azure/setup-helm@v5
+      with:
+       version: v4.3.0
+
+    - name: Lint chart
+      run: >
+       helm lint ./flask-app
+       --set-string secrets.dbPassword=ci-admin-only
+       --set-string secrets.flaskPassword=ci-flask-only
+
+    - name: Render chart
+      run: >
+       helm template flask-app ./flask-app
+       --set-string secrets.dbPassword=ci-admin-only
+       --set-string secrets.flaskPassword=ci-flask-only
+       > /temp/rendered.yaml 
