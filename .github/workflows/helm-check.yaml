@@ -29,4 +29,4 @@ jobs:
        helm template flask-app ./flask-app
        --set-string secrets.dbPassword=ci-admin-only
        --set-string secrets.flaskPassword=ci-flask-only
-       > /temp/rendered.yaml 
+       > /tmp/rendered.yaml
