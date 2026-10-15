@@ -323,7 +323,7 @@ Checks use Helm v4.3.0 and dummy passwords. No private values file or cluster ac
 
 ## Remaining work
 
-- Add schema migrations for existing databases.
+- Add a migration runner that checks applied versions before executing migrations.
 - Test PostgreSQL probe behaviour during failures and recovery.
 - Measure resource usage under load and adjust the Flask settings.
 - Review database security before considering broader use.
