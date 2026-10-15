@@ -297,6 +297,21 @@ Existing databases do not rerun these scripts. Their roles must be configured se
 
 The isolated fresh-database test verified that `flaskuser` could read `Kubernetes User` and could not insert rows.
 
+## Schema migrations
+
+`migrations/001_users_created_at.sql` adds `users.created_at` and records version `001_add_users_created_at` in `public.schema_migrations`.
+
+Existing rows keep NULL timestamps. Future inserts receive CURRENT_TIMESTAMP by default.
+
+Back up the database before applying a migration. From the repository root:
+
+```bash
+kubectl exec -i deployment/postgres -- psql -U appuser -d appdb -v ON_ERROR_STOP=1 < migrations/001_users_created_at.sql
+```
+
+Apply this migration only once per database. It uses BEGIN and COMMIT; ON_ERROR_STOP stops execution on SQL errors. There is no automatic migration runner yet.
+
+The corrected file was tested against an isolated fresh database. The existing row and migration record were verified.
 
 ## Automated checks
 
