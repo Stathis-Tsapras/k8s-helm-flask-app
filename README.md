@@ -309,9 +309,21 @@ Back up the database before applying a migration. From the repository root:
 kubectl exec -i deployment/postgres -- psql -U appuser -d appdb -v ON_ERROR_STOP=1 < migrations/001_users_created_at.sql
 ```
 
-Apply this migration only once per database. It uses BEGIN and COMMIT; ON_ERROR_STOP stops execution on SQL errors. There is no automatic migration runner yet.
+Apply this migration only once per database. It uses BEGIN and COMMIT; ON_ERROR_STOP stops execution on SQL errors.
 
 The corrected file was tested against an isolated fresh database. The existing row and migration record were verified.
+
+Run migration 001 against the main database:
+
+bash scripts/migrate.sh
+
+To target the temporary test Pod:
+
+bash scripts/migrate.sh pod/postgres-init-test
+
+The runner checks schema_migrations and skips migration 001 if already applied. Both apply and skip paths were verified on the isolated test database.
+
+The runner currently handles migration 001 only.
 
 ## Automated checks
 
