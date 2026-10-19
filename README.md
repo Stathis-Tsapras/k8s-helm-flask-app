@@ -349,6 +349,38 @@ Tested using the isolated `tests/postgres-probe-test.yaml` pod with temporary st
 
 These marker files deliberately fail the checks; they do not simulate an actual database outage. The main database and PVC were unaffected.
 
+### PostgreSQL shutdown and recovery test
+
+Stopped PostgreSQL cleanly in the isolated test pod:
+
+```bash
+kubectl exec postgres-probe-test -- gosu postgres pg_ctl -D /var/lib/postgresql/data stop -m fast
+```
+
+- `kubectl exec postgres-probe-test`: runs a command inside the test pod.
+- `--`: separates kubectl options from the command inside the container.
+- `gosu postgres`: runs the command as the Linux user `postgres`, because `pg_ctl` cannot run as root.
+- `pg_ctl`: PostgreSQL's server control tool.
+- `-D /var/lib/postgresql/data`: specifies the database data directory.
+- `stop`: shuts down PostgreSQL.
+- `-m fast`: disconnects clients, rolls back active transactions, and shuts down cleanly.
+
+The Pod's `restartPolicy: Always` restarted the container. It returned to 1/1 Ready with one restart.
+
+Verified the test data after recovery:
+
+```bash
+kubectl exec postgres-probe-test -- psql -U appuser -d appdb -c 'SELECT id, name FROM users;'
+```
+
+- `-U appuser`: connects as database user `appuser`.
+- `-d appdb`: selects database `appdb`.
+- `-c`: executes the supplied SQL statement.
+
+The query returned `1 | Kubernetes User`. The test's emptyDir storage survived the container restart. Deleting the test pod removes that temporary storage.
+
+This verified recovery after a clean shutdown. The restart was caused by `restartPolicy: Always`; the separate marker test verified liveness-triggered restarts.
+
 ## Remaining work
 
 - Test PostgreSQL probes during an actual database failure and recovery
