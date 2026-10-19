@@ -54,7 +54,7 @@ Restrict its permissions:
 chmod 600 ~/devops-lab-private.yaml
 ```
 
-For the existing database, use its current password. Changing this value does not change an existing PostgreSQL user's password. The Secret template uses `required` to reject a missing password. PostgreSQL uses the administrator credentials; Flask uses its separate, restricted account..
+For the existing database, use its current password. Changing this value does not change an existing PostgreSQL user's password. The Secret template uses `required` to reject a missing password. PostgreSQL uses the administrator credentials; Flask uses its separate, restricted account.
 
 The password is provided through a Kubernetes Secret, rather than a plain environment value in the Deployment. This avoids committing it to source control; it is not encryption. Helm release records and Kubernetes Secrets still contain sensitive data and require appropriate access controls.
 
@@ -324,7 +324,9 @@ bash scripts/migrate.sh
 
 To target the temporary test Pod:
 
+```bash
 bash scripts/migrate.sh pod/postgres-init-test
+```
 
 The runner checks schema_migrations and skips migration 001 if already applied. Both apply and skip paths were verified on the isolated test database.
 
