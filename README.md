@@ -13,14 +13,16 @@ This is a local lab, not a production deployment. The instructions below assume 
 | Setting | Value |
 | --- | --- |
 | Cluster | kind, `devops-lab` |
-| Flask image | `flask-app:v2` |
+| Flask image | `flask-app:v3` |
 | Flask image pull policy | `Never` |
 | Flask replicas | 2 |
 | Flask Service port | 8081 |
 | Flask target port | 5000 |
 | PostgreSQL image | `postgres:16` |
 | PostgreSQL host / Service | `postgres` |
-| Database / database user | `appdb` / `appuser` |
+| Database                 | `appdb`     |
+| PostgreSQL administrator | `appuser`   |
+| Flask database account   | `flaskuser` |
 | Secret / password key | `app-secret` / `DB_PASSWORD` |
 | PostgreSQL PVC | `postgres-data`, 1 GiB |
 | Data mount | `/var/lib/postgresql/data` |
@@ -43,6 +45,7 @@ Create `~/devops-lab-private.yaml` outside the repository:
 ```yaml
 secrets:
   dbPassword: "REPLACE_WITH_YOUR_DATABASE_PASSWORD"
+  flaskPassword: "REPLACE_WITH_YOUR_FLASK_PASSWORD"
 ```
 
 Restrict its permissions:
@@ -51,7 +54,7 @@ Restrict its permissions:
 chmod 600 ~/devops-lab-private.yaml
 ```
 
-For the existing database, use its current password. Changing this value does not change an existing PostgreSQL user's password. The Secret template uses `required` to reject a missing password. Both applications should use the same credentials.
+For the existing database, use its current password. Changing this value does not change an existing PostgreSQL user's password. The Secret template uses `required` to reject a missing password. PostgreSQL uses the administrator credentials; Flask uses its separate, restricted account..
 
 The password is provided through a Kubernetes Secret, rather than a plain environment value in the Deployment. This avoids committing it to source control; it is not encryption. Helm release records and Kubernetes Secrets still contain sensitive data and require appropriate access controls.
 
@@ -73,11 +76,11 @@ The expected kind context is `kind-devops-lab`. Use the private values file on e
 
 Before installing into another prepared kind cluster:
 
-1. Build `flask-app:v2` from the original Flask application project. Its source is not included here.
+1. Build `flask-app:v3` from the original Flask application project. Its source is not included here.
 2. Load the image into kind:
 
    ```bash
-   kind load docker-image flask-app:v2 --name devops-lab
+   kind load docker-image flask-app:v3 --name devops-lab
    ```
 
 3. Confirm the cluster provides StorageClass `standard`, then apply the PVC:
@@ -94,7 +97,7 @@ Before installing into another prepared kind cluster:
    helm install flask-app ./flask-app -f ~/devops-lab-private.yaml --wait --timeout 2m
    ```
 
-5. On an empty PostgreSQL data directory, the mounted init.sql automcatically creates the users table and inserts Kubernetes User.
+5. On an empty PostgreSQL data directory, the mounted init.sql automatically creates the users table and inserts Kubernetes User.
 
    Existing databases are left unchanged.
 
@@ -315,7 +318,9 @@ The corrected file was tested against an isolated fresh database. The existing r
 
 Run migration 001 against the main database:
 
+```bash
 bash scripts/migrate.sh
+```
 
 To target the temporary test Pod:
 
@@ -333,7 +338,7 @@ Workflow: `.github/workflows/helm-check.yaml`
 
 Checks use Helm v4.3.0 and dummy passwords. No private values file or cluster access is required. These checks do not deploy the application or test database connectivity.
 
-### PostgreSQL probe tests
+## PostgreSQL probe tests
 
 Tested using the isolated `tests/postgres-probe-test.yaml` pod with temporary storage:
 
@@ -344,6 +349,6 @@ These marker files deliberately fail the checks; they do not simulate an actual 
 
 ## Remaining work
 
-- Test PostgreSQL probe behaviour during failures and recovery.
+- Test PostgreSQL probes during an actual database failure and recovery
 - Measure resource usage under load and adjust the Flask settings.
 - Review database security before considering broader use.
