@@ -432,6 +432,6 @@ This verified recovery after a clean shutdown. The restart was caused by `restar
 
 ## Remaining work
 
-- Test PostgreSQL probes during an actual database failure and recovery
-- Measure resource usage under load and adjust the Flask settings.
-- Review database security before considering broader use.
+- Test PostgreSQL probes during an actual database failure and recovery.
+- Run representative load tests and use the measurements to review resource settings.
+- Complete a broader security review before any use beyond this local lab.
