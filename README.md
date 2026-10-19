@@ -8,6 +8,8 @@ Helm release `flask-app` in namespace `default` manages the Flask Deployment, Fl
 
 This is a local lab, not a production deployment. The instructions below assume the existing `devops-lab` kind cluster and the Flask image from the earlier Docker project.
 
+Both Flask and PostgreSQL explicitly set `automountServiceAccountToken: false`, because neither needs Kubernetes API access. After the upgrade, both Deployments showed the setting as false, the main pods were Ready, and the application and health endpoints worked.
+
 ## Tested configuration
 
 | Setting | Value |
