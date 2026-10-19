@@ -20,6 +20,7 @@ spec:
       labels:
         app: postgres
     spec:
+      automountServiceAccountToken: false
       containers:
       - env:
         - name: POSTGRES_PASSWORD

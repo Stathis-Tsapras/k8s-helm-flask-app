@@ -14,6 +14,7 @@ spec:
       labels:
         app: flask-app
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: flask-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
