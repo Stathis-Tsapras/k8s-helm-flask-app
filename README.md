@@ -300,6 +300,53 @@ Existing databases do not rerun these scripts. Their roles must be configured se
 
 The isolated fresh-database test verified that `flaskuser` could read `Kubernetes User` and could not insert rows.
 
+### Database account permission checks
+
+Check the Flask account's role attributes:
+
+```bash
+kubectl exec deployment/postgres -- psql -U appuser -d appdb -c '\du flaskuser'
+```
+
+The Attributes field was empty: no special privileges such as Superuser or Create DB.
+
+Check permissions on the users table:
+
+```bash
+kubectl exec deployment/postgres -- psql -U appuser -d appdb -c '\dp public.users'
+```
+
+The entry `flaskuser=r/appuser` confirms SELECT permission (`r`), granted by `appuser`.
+
+Check membership in other roles:
+
+```bash
+kubectl exec deployment/postgres -- psql -U appuser -d appdb -c "SELECT rolname FROM pg_roles WHERE pg_has_role('flaskuser', oid, 'MEMBER') AND rolname <> 'flaskuser';"
+```
+
+Returned 0 rows: no other role memberships.
+
+Check whether Flask can create tables in the public schema:
+
+```bash
+kubectl exec deployment/postgres -- psql -U appuser -d appdb -c "SELECT has_schema_privilege('flaskuser', 'public', 'CREATE');"
+```
+
+Returned `f` (false): no CREATE permission in that schema.
+
+Command options used:
+
+- `kubectl exec deployment/postgres`: runs a command inside the PostgreSQL Deployment's pod.
+- `--`: separates kubectl options from the container command.
+- `psql`: PostgreSQL's command-line client.
+- `-U appuser`: connects as the database administrator.
+- `-d appdb`: selects the database.
+- `-c`: executes the supplied SQL or psql command.
+- `\du`: displays database roles.
+- `\dp`: displays object access privileges.
+
+These checks verify specific account permissions; they do not constitute a complete database security review.
+
 ## Schema migrations
 
 `migrations/001_users_created_at.sql` adds `users.created_at` and records version `001_add_users_created_at` in `public.schema_migrations`.
