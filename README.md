@@ -333,6 +333,15 @@ Workflow: `.github/workflows/helm-check.yaml`
 
 Checks use Helm v4.3.0 and dummy passwords. No private values file or cluster access is required. These checks do not deploy the application or test database connectivity.
 
+### PostgreSQL probe tests
+
+Tested using the isolated `tests/postgres-probe-test.yaml` pod with temporary storage:
+
+- Readiness: creating `/tmp/fail-ready` made the pod unready without restarting it. Removing the file restored readiness.
+- Liveness: creating `/tmp/fail-live` triggered a container restart. The pod recovered to 1/1 Ready, and events confirmed the liveness failure caused the restart.
+
+These marker files deliberately fail the checks; they do not simulate an actual database outage. The main database and PVC were unaffected.
+
 ## Remaining work
 
 - Test PostgreSQL probe behaviour during failures and recovery.
